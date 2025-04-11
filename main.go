@@ -19,7 +19,7 @@ var EDGES = [...]model.NodeID{
 }
 
 func main() {
-	graphMap, distanceMap, visitedMap, predeccessorMap := initGraph()
+	graphMap, distanceMap, visitedMap, predecessorMap := initGraph()
 
 	pq := make(priority_queue.PriorityQueue, 0)
 	heap.Init(&pq)
@@ -29,7 +29,8 @@ func main() {
 	fmt.Printf("Source is %s\n", sourceNode)
 
 	heap.Push(&pq, &priority_queue.Item{
-		Value: sourceNode,
+		Value:    sourceNode,
+		Priority: distanceMap[sourceNode],
 	})
 
 	for pq.Len() > 0 {
@@ -46,7 +47,7 @@ func main() {
 
 			if newDistance < distanceMap[neighborID] {
 				distanceMap[neighborID] = newDistance
-				predeccessorMap[neighborID] = current.Value
+				predecessorMap[neighborID] = current.Value
 				heap.Push(&pq, &priority_queue.Item{
 					Value:    neighborID,
 					Priority: newDistance,
@@ -60,31 +61,46 @@ func main() {
 		fmt.Printf("Distance to %s: %d\n", node, distanceMap[node])
 	}
 
+	var paths [][]model.NodeID
+
 	fmt.Println("\nShortest paths from source:")
 	for _, node := range EDGES {
 		if node == sourceNode {
-			continue // Skip the source node
+			continue
 		}
 
-		// Reconstruct the path
-		path := []model.NodeID{node}
-		current := node
-		for current != sourceNode {
-			current = predeccessorMap[current]
-			path = append([]model.NodeID{current}, path...)
-		}
+		path := getPath(predecessorMap, sourceNode, node)
+		paths = append(paths, path)
+		printPath(path, sourceNode)
 
-		// Print the path
-		fmt.Printf("Path to %s: ", node)
-		for i, pathNode := range path {
-			if i > 0 {
-				fmt.Print(" -> ")
-			}
-			fmt.Print(pathNode)
-		}
-		fmt.Println()
+	}
+	fmt.Println("")
+
+	generateTable(paths)
+
+}
+
+func getPath(predecessors map[model.NodeID]model.NodeID, sourceNode model.NodeID, destinationNode model.NodeID) []model.NodeID {
+	path := []model.NodeID{destinationNode}
+	current := destinationNode
+
+	for current != sourceNode {
+		current = predecessors[current]
+		path = append([]model.NodeID{current}, path...)
 	}
 
+	return path
+}
+
+func printPath(path []model.NodeID, sourceNode model.NodeID) {
+	fmt.Printf("Path to %s: ", path[len(path)-1])
+	for i, pathNode := range path {
+		if i > 0 {
+			fmt.Print(" -> ")
+		}
+		fmt.Print(pathNode)
+	}
+	fmt.Println()
 }
 
 func initGraph() (map[model.NodeID]map[model.NodeID]int, map[model.NodeID]int, map[model.NodeID]bool, map[model.NodeID]model.NodeID) {
