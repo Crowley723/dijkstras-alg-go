@@ -16,7 +16,7 @@ func generateTable(paths [][]model.NodeID) {
 	tbl.WithHeaderFormatter(headerFmt).WithFirstColumnFormatter(columnFmt)
 
 	for _, path := range paths {
-		tbl.AddRow(path[1], fmt.Sprintf("(%s,%s)", path[0], path[1]))
+		tbl.AddRow(path[len(path)-1], fmt.Sprintf("(%s,%s)", path[0], path[1]))
 	}
 
 	tbl.Print()
